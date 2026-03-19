@@ -298,11 +298,34 @@ class GoogleSheetsService {
         .toList();
     final rows = table['rows'] as List? ?? [];
 
+    // If all labels are empty, use the first row as headers
+    final allLabelsEmpty = rawLabels.every((l) => l.trim().isEmpty);
+    List<String> headers;
+    int dataStartIndex;
+
+    if (allLabelsEmpty && rows.isNotEmpty) {
+      final firstRowCells = (rows[0] as Map<String, dynamic>)['c'] as List;
+      headers = [];
+      for (var i = 0; i < firstRowCells.length; i++) {
+        final cell = firstRowCells[i];
+        if (cell != null) {
+          final cellMap = cell as Map<String, dynamic>;
+          headers.add((cellMap['f'] ?? cellMap['v'] ?? '').toString().trim());
+        } else {
+          headers.add('');
+        }
+      }
+      dataStartIndex = 1;
+    } else {
+      headers = rawLabels.map((l) => l.trim()).toList();
+      dataStartIndex = 0;
+    }
+
     final discounts = <PartnerDiscount>[];
-    for (final row in rows) {
-      final cells = (row as Map<String, dynamic>)['c'] as List;
+    for (var ri = dataStartIndex; ri < rows.length; ri++) {
+      final cells = (rows[ri] as Map<String, dynamic>)['c'] as List;
       final values = <String>[];
-      for (var i = 0; i < rawLabels.length && i < cells.length; i++) {
+      for (var i = 0; i < headers.length && i < cells.length; i++) {
         final cell = cells[i];
         if (cell != null) {
           final cellMap = cell as Map<String, dynamic>;
@@ -314,8 +337,8 @@ class GoogleSheetsService {
 
       // Map columns by header labels
       final map = <String, String>{};
-      for (var i = 0; i < rawLabels.length && i < values.length; i++) {
-        map[rawLabels[i].trim()] = values[i];
+      for (var i = 0; i < headers.length && i < values.length; i++) {
+        map[headers[i]] = values[i];
       }
 
       // Try to find partner name, promo code, and comment by known Ukrainian headers

@@ -268,7 +268,7 @@ class GoogleSheetsService {
   /// Fetches partner discounts from the discounts Google Sheet.
   Future<List<PartnerDiscount>> fetchPartnerDiscounts() async {
     final url = Uri.parse(
-      'https://docs.google.com/spreadsheets/d/$_discountsSpreadsheetId/gviz/tq?tqx=out:json',
+      'https://docs.google.com/spreadsheets/d/$_discountsSpreadsheetId/gviz/tq?tqx=out:json&headers=1',
     );
 
     final http.Response response;
